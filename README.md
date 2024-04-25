@@ -33,7 +33,7 @@ Add following extension to `/etc/crontab`
 
 - Store unit files into /usr/lib/systemd/system/
 - Reload systemd with `systemctl daemon-reload`
-- Run a one-shot for testinger with `systemctl enable fail2ban-block-ip-range.timer`
+- Run a one-shot for testing with `systemctl enable fail2ban-block-ip-range.timer`
 - Check journald with `journalctl -b 0 -u fail2ban-block-ip-range.service`
 - Enable the timer with `systemctl enable fail2ban-block-ip-range.timer`
 - Check journald with `journalctl -b 0 -u fail2ban-block-ip-range.timer`
