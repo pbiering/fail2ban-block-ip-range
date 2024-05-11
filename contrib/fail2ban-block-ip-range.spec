@@ -10,7 +10,7 @@
 
 Name:      fail2ban-block-ip-range
 BuildArch: noarch
-Version:   1.0.0
+Version:   1.1.0
 Release:   1
 Summary:   fail2ban block ip/network range
 License:   Unknown
@@ -92,5 +92,8 @@ fi
 
 
 %changelog
+* Wed May 11 2024 Peter Bieringer <pb@bieringer.de> - 1.1.0-1
+- Major rework
+
 * Mon Jan 01 2024 Peter Bieringer <pb@bieringer.de> - 1.0.0-1
 - Initial release 1.0.0
