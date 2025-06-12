@@ -25,7 +25,7 @@ countlimit_default = 7
 parser = argparse.ArgumentParser(
     prog="fail2ban-block-ip-range.py",
     description="Scan fail2ban log and aggregate single banned IPv4 addresses into banned networks",
-    epilog=f"Defaults: FILE={file_default} MAXAGE={maxage_default} COUNTLIMIT={str(countlimit_default)}",
+    epilog="Defaults: FILE={} MAXAGE={} COUNTLIMIT={}".format(file_default, maxage_default, str(countlimit_default)),
 )
 
 parser.add_argument("-v", "--verbose"   , action="store_true")  # on/off flag
@@ -60,20 +60,20 @@ seconds_per_unit = {
 if m:
     max_age_seconds = int(m.group(1)) * seconds_per_unit[m.group(2)]
     if args.debug:
-        print(f"Filter entries older {max_age} = {max_age_seconds}s")
+        print("Filter entries older {} = {}s".format(max_age, max_age_seconds))
 else:
-    print(f"MAXAGE not valid: {max_age}")
+    print("MAXAGE not valid: {}".format(max_age))
     exit(1)
 
 dt_now = datetime.now()
 
 if not os.path.isfile(fail2ban_log_file):
-    print(f"File not found: {fail2ban_log_file}")
+    print("File not found: {}".format(fail2ban_log_file))
     exit(1)
 
 if args.debug:
-    print(f"Logfile to analyze: {fail2ban_log_file}")
-    print(f"Count limit: {countLimit}")
+    print("Logfile to analyze: {}".format(fail2ban_log_file))
+    print("Count limit: {}".format(countLimit))
 
 file = open(fail2ban_log_file, mode="r")
 
@@ -93,10 +93,10 @@ finalList = defaultdict(lambda: defaultdict(int))
 ##### Functions
 def printdict(var):
     for jail in var:
-        print(f" jail '{jail}'")
+        print(" jail '{}'".format(jail))
         for ip in var[jail]:
             count = var[jail][ip]
-            print(f"  {ip}: {count}")
+            print("  {}: {}".format(ip, count))
 
 
 # PART 1: filtering messages and IPs
@@ -126,31 +126,31 @@ while True:
         dt_delta = int((dt_now - dt).total_seconds())
         if dt_delta > max_age_seconds:
             if args.debug:
-                print(f"Found IPv4: {timedate} {dt_delta}s jail '{jail}' {ip} -> SKIP")
+                print("Found IPv4: {} {}s jail '{}' {} -> SKIP".format(timedate, dt_delta, jail, ip))
             continue
 
         if args.debug:
-            print(f"Found IPv4: {timedate} {dt_delta}s jail '{jail}' {ip} -> JAIL-CHECK")
+            print("Found IPv4: {} {}s jail '{}' {} -> JAIL-CHECK".format(timedate, dt_delta, jail, ip))
 
         if len(includeJail) > 0:
             if jail in includeJail:
                 if args.debug:
-                    print(f"Found IPv4: {timedate} {dt_delta}s jail '{jail}' included -> STORE")
+                    print("Found IPv4: {} {}s jail '{}' included -> STORE".format(timedate, dt_delta, jail))
             else:
                 if args.debug:
-                    print(f"Found IPv4: {timedate} {dt_delta}s jail '{jail}' not included -> SKIP")
+                    print("Found IPv4: {} {}s jail '{}' not included -> SKIP".format(timedate, dt_delta, jail))
                 continue
         elif len(excludeJail) > 0:
             if jail in excludeJail:
                 if args.debug:
-                    print(f"Found IPv4: {timedate} {dt_delta}s jail '{jail}' excluded -> SKIP")
+                    print("Found IPv4: {} {}s jail '{}' excluded -> SKIP".format(timedate, dt_delta, jail))
                 continue
             else:
                 if args.debug:
-                    print(f"Found IPv4: {timedate} {dt_delta}s jail '{jail}' not excluded -> STORE")
+                    print("Found IPv4: {} {}s jail '{}' not excluded -> STORE".format(timedate, dt_delta, jail))
         else:
             if args.debug:
-                print(f"Found IPv4: {timedate} {dt_delta}s no jail in- or exclusions -> STORE")
+                print("Found IPv4: {} {}s no jail in- or exclusions -> STORE".format(timedate, dt_delta))
 
         myjailip[jail][ip] += 1
 
@@ -202,10 +202,10 @@ for jail in myjailip:
                     finalList[jail][netIndex] = maxCount
                 else:
                     if args.debug:
-                        print(f"Skip IPv4: {netIndex} (count {maxCount} below limit {countLimit})")
+                        print("Skip IPv4: {} (count {} below limit {})".format(netIndex, maxCount, countLimit))
             else:
                 if args.debug:
-                    print(f"Skip IPv4: {netIndex} (not a network)")
+                    print("Skip IPv4: {} (not a network)".format(netIndex))
 
 if args.debug:
     print("Final list of networks to block per jail:")
@@ -227,7 +227,7 @@ for jail in finalList:
             banned = run(getban_command, capture_output=True, text=True, shell=True)
 
         if banned.returncode != 0:
-            print(f"Unable to retrieve current status for jail '{jail}' {ip}: {banned.stderr}")
+            print("Unable to retrieve current status for jail '{}' {}: {}".format(jail, ip, banned.stderr))
             continue
 
         if banned.stdout.strip() == "0":
@@ -240,16 +240,16 @@ for jail in finalList:
                     result = run(banIP_command, capture_output=True, text=True, shell=True)
 
                 if result.returncode != 0:
-                    print(f"Unable to ban for jail '{jail}' {ip}: {result.stderr}")
+                    print("Unable to ban for jail '{}' {}: {}".format(jail, ip, result.stderr))
                     continue
 
                 if result.stdout.strip() == "1":
                     if not args.quiet:
-                        print(f"jail '{jail}' successful ban aggregated IPv4 network: {ip}")
+                        print("jail '{}' successful ban aggregated IPv4 network: {}".format(jail, ip))
                 else:
-                    print(f"jail '{jail}' unsuccessful try to ban aggregated IPv4 network: {ip} (result: {result.stdout.strip()})")
+                    print("jail '{}' unsuccessful try to ban aggregated IPv4 network: {} (result: {})".format(jail, ip, result.stdout.strip()))
             else:
-                print(f"jail '{jail}' would ban aggregated IPv4 network: {ip} (dry-run)")
+                print("jail '{}' would ban aggregated IPv4 network: {} (dry-run)".format(jail, ip))
         else:
             if args.verbose:
-                print(f"jail '{jail}' aggregated IPv4 network already banned: {ip}")
+                print("jail '{}' aggregated IPv4 network already banned: {}".format(jail, ip))
